@@ -1,0 +1,63 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"projectColors.mainColor": "#b9aee0",
+		"window.title": "imdtools",
+		"workbench.colorCustomizations": {
+			"editorRuler.foreground": "#ff4081",
+			"statusBarItem.warningBackground": "#b9aee0",
+			"statusBarItem.warningForeground": "#000000",
+			"statusBarItem.warningHoverBackground": "#b9aee0",
+			"statusBarItem.warningHoverForeground": "#00000090",
+			"statusBarItem.remoteBackground": "#c6bbed",
+			"statusBarItem.remoteForeground": "#000000",
+			"statusBarItem.remoteHoverBackground": "#d3c8fa",
+			"statusBarItem.remoteHoverForeground": "#00000090",
+			"statusBar.background": "#b9aee0",
+			"statusBar.foreground": "#000000",
+			"statusBar.border": "#b9aee0",
+			"statusBar.debuggingBackground": "#b9aee0",
+			"statusBar.debuggingForeground": "#000000",
+			"statusBar.debuggingBorder": "#b9aee0",
+			"statusBar.noFolderBackground": "#b9aee0",
+			"statusBar.noFolderForeground": "#000000",
+			"statusBar.noFolderBorder": "#b9aee0",
+			"statusBar.prominentBackground": "#b9aee0",
+			"statusBar.prominentForeground": "#000000",
+			"statusBar.prominentHoverBackground": "#b9aee0",
+			"statusBar.prominentHoverForeground": "#00000090",
+			"focusBorder": "#b9aee099",
+			"progressBar.background": "#b9aee0",
+			"textLink.foreground": "#f9eeff",
+			"textLink.activeForeground": "#fffbff",
+			"selection.background": "#aca1d3",
+			"list.highlightForeground": "#b9aee0",
+			"list.focusAndSelectionOutline": "#b9aee099",
+			"button.background": "#b9aee0",
+			"button.foreground": "#000000",
+			"button.hoverBackground": "#c6bbed",
+			"tab.activeBorderTop": "#c6bbed",
+			"pickerGroup.foreground": "#c6bbed",
+			"list.activeSelectionBackground": "#b9aee04d",
+			"panelTitle.activeBorder": "#c6bbed",
+			"activityBar.activeBorder": "#b9aee0",
+			"activityBarBadge.foreground": "#000000",
+			"activityBarBadge.background": "#b9aee0",
+			"titleBar.activeBackground": "#b9aee0",
+			"titleBar.activeForeground": "#000000",
+			"titleBar.inactiveBackground": "#b9aee0",
+			"titleBar.inactiveForeground": "#00000090"
+		},
+		"projectColors.name": "imdtools",
+		"projectColors.isActivityBarColored": false,
+		"projectColors.isTitleBarColored": true,
+		"projectColors.isStatusBarColored": true,
+		"projectColors.isProjectNameColored": true,
+		"projectColors.isActiveItemsColored": true,
+		"projectColors.setWindowTitle": true
+	}
+}

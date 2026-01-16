@@ -1,0 +1,7 @@
+^CODEOWNERS$
+^.*[.]code-workspace$
+^[.]vscode$
+^LICENSE\.md$
+^[.]?air[.]toml$
+^[.]vscode$
+^[.]lintr$
