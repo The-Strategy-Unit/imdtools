@@ -4,11 +4,10 @@
 #'  and IMD ranks and deciles
 #' @export
 get_imd_lookup <- function() {
-  base <- "https://assets.publishing.service.gov.uk/media"
   fold <- "691dece32c6b98ecdbc500d5"
   file <- "File_1_IoD2025_Index_of_Multiple_Deprivation.xlsx"
 
-  file.path(base, fold, file) |>
+  file.path(base_gov_url(), fold, file) |>
     openxlsx2::read_xlsx(sheet = "IMD25") |>
     tibble::as_tibble() |>
     dplyr::rename_with(\(x) {
@@ -24,3 +23,5 @@ get_imd_lookup <- function() {
     dplyr::mutate(dplyr::across(tidyselect::starts_with("imd"), as.integer)) |>
     dplyr::mutate(dplyr::across("imd_decile", as.factor))
 }
+
+base_gov_url <- \() "https://assets.publishing.service.gov.uk/media"

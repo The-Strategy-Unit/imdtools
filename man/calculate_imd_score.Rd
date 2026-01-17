@@ -4,14 +4,25 @@
 \alias{calculate_imd_score}
 \title{Calculate IMD score from domain scores}
 \usage{
-calculate_imd_score(scores_tbl, domains = choose_domains())
+calculate_imd_score(
+  scores_tbl,
+  domains = choose_domains(),
+  weights = imd_weights()
+)
 }
 \arguments{
 \item{scores_tbl}{A table containing transformed domain scores, as produced
 by \link{get_transformed_scores}}
 
-\item{domains}{A Boolean vector, best produced by \link{choose_domains}}
+\item{domains}{A logical vector, best produced by \link{choose_domains}}
+
+\item{weights}{A numeric vector, as produced by \link{imd_weights} by default}
 }
 \description{
-Calculate IMD score from domain scores
+You may exclude 1 or more domains by switching the relevant element of the
+output of \link{choose_domains} to \code{FALSE}. You may additionally supply your own
+vector of weights. See \link{imd_weights} or the IMD documentation for the
+default weight values.
+Setting a domain weight to zero is equivalent to excluding the domain, and
+vice versa.
 }

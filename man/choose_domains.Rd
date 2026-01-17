@@ -11,29 +11,32 @@ choose_domains(
   include_health = TRUE,
   include_crime = TRUE,
   include_barriers = TRUE,
-  include_living_environment = TRUE
+  include_environment = TRUE
 )
 }
 \arguments{
-\item{include_income}{Boolean, default \code{TRUE}. Include the Income domain?}
+\item{include_income}{Boolean, default \code{TRUE}. Include the Income Deprivation
+domain?}
 
 \item{include_employment}{Boolean, default \code{TRUE}. Include the Employment
-domain?}
+Deprivation domain?}
 
-\item{include_education}{Boolean, default \code{TRUE}. Include the Education
-domain?}
+\item{include_education}{Boolean, default \code{TRUE}. Include the Education,
+Skills and Training domain?}
 
-\item{include_health}{Boolean, default \code{TRUE}. Include the Health domain?}
+\item{include_health}{Boolean, default \code{TRUE}. Include the Health
+Deprivation and Disability domain?}
 
 \item{include_crime}{Boolean, default \code{TRUE}. Include the Crime domain?}
 
-\item{include_barriers}{Boolean, default \code{TRUE}. Include the Barriers domain?}
+\item{include_barriers}{Boolean, default \code{TRUE}. Include the Barriers to
+Housing and Services domain?}
 
-\item{include_living_environment}{Boolean, default \code{TRUE}. Include the
-Living Environment domain?}
+\item{include_environment}{Boolean, default \code{TRUE}. Include the
+Living Environment Deprivation domain?}
 }
 \value{
-A Boolean vector
+A logical vector
 }
 \description{
 All domains are included by default
