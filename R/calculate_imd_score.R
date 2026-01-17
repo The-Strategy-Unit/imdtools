@@ -1,19 +1,34 @@
 #' Calculate IMD score from domain scores
 #'
+#' You may exclude 1 or more domains by switching the relevant element of the
+#'  output of [choose_domains] to `FALSE`. You may additionally supply your own
+#'  vector of weights. See [imd_weights] or the IMD documentation for the
+#'  default weight values.
+#' Setting a domain weight to zero is equivalent to excluding the domain, and
+#'  vice versa.
+#'
 #' @param scores_tbl A table containing transformed domain scores, as produced
 #'  by [get_transformed_scores]
-#' @param domains A Boolean vector, best produced by [choose_domains]
+#' @param domains A logical vector, best produced by [choose_domains]
+#' @param weights A numeric vector, as produced by [imd_weights] by default
 #' @importFrom rlang .data
 #' @export
-calculate_imd_score <- function(scores_tbl, domains = choose_domains()) {
+calculate_imd_score <- function(
+  scores_tbl,
+  domains = choose_domains(),
+  weights = imd_weights()
+) {
   stopifnot(ncol(scores_tbl) == 11)
   init_cols <- c("lsoa21cd", "lsoa21nm", "lad24cd", "lad24nm")
   stopifnot(identical(colnames(scores_tbl)[seq(4)], init_cols))
   stopifnot(all(grepl("_score$", colnames(scores_tbl)[seq(5, 11)])))
   stopifnot(all(rlang::is_bool(domains)))
   stopifnot(length(domains) == 7)
-  cols <- which(domains) + 4 # col numbers for domains after initial 4 columns
-  wts <- imd_weights()[which(domains)]
+  stopifnot(length(weights) == 7)
+
+  cols <- unname(which(domains)) + 4 # column numbers for domain scores
+  weights <- weights[which(domains)]
+
   scores_tbl <- dplyr::select(scores_tbl, c(seq(4), tidyselect::all_of(cols)))
   apply_weight <- function(tbl, col, wt) {
     dplyr::mutate(tbl, dplyr::across(col, \(x) x * wt))

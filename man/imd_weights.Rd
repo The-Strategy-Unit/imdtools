@@ -7,9 +7,9 @@
 imd_weights()
 }
 \value{
-A numeric vector
+A numeric vector of length 7
 }
 \description{
-The per-domain weightings for the 2025 IMD
+In order: income, employment, education, health deprivation and disability,
+crime, barriers to housing and services, living environment deprivation
 }
-\keyword{internal}
