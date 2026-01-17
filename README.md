@@ -122,7 +122,7 @@ guidance in the IMD Research Report, which makes clear:
 > The standardised domain scores have been standardised by ranking and
 > then transformed to an exponential distribution. *These standardised
 > domain scores have been published to be used as the basis for users to
-> combine the domains together using different weights.*</br />
+> combine the domains together using different weights.*<br />
 > *\[emphasis added\]*<br /> \[Reconstituting the IMD overall score\]
 > can be achieved… using the following equation:
 >
