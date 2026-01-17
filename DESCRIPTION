@@ -1,6 +1,6 @@
 Package: imdtools
 Title: Tools for Indices of Multiple Deprivation (IMD) data in R
-Version: 0.0.1
+Version: 0.0.2
 Authors@R:
     person("Fran", "Barton",
     email = "francis.barton@nhs.net",

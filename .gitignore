@@ -249,3 +249,6 @@ pyrightconfig.json
 
 
 .vscode
+
+/.quarto/
+**/*.quarto_ipynb

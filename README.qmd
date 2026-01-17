@@ -1,0 +1,367 @@
+---
+title: imdtools 📦
+format:
+  gfm:
+    preview-mode: raw
+---
+
+
+Tools for Indices of Multiple Deprivation (IMD) data in R.
+
+## Installation and usage
+
+To install:
+
+```r
+pak::pak("The-Strategy-Unit/imdtools")
+```
+
+```{r}
+library(imdtools)
+```
+
+To generate a lookup table of IMD2025 ranks and deciles for all English LSOAs:
+
+```r
+get_imd_lookup()
+```
+
+This table is created from "File 1" on the [GOV.UK IMD2025 webpage][govimd].
+
+[govimd]: https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025
+
+To generate a table of the LSOA-level transformed scores for each of the 7
+IMD domains:
+
+```r
+get_transformed_scores()
+```
+
+This table is created from "File 9" on the [GOV.UK IMD2025 webpage][govimd].
+
+
+To re-create the published IMD scores by weighting and combining the
+transformed domain scores, use the `calculate_imd_score()` function:
+
+```r
+get_transformed_scores() |>
+  calculate_imd_score(domains = choose_domains())
+```
+
+`choose_domains()` helps you select a subset of the seven domains should you
+wish to do so, in order to calculate an amended version of the IMD.
+This follows the guidance in the [IMD Research Report (PDF)][resrep], Appendix
+B:
+
+>  It is possible to use the component domains to produce alternative measures
+> of deprivation at LSOA, based on different domain weights than are used in the
+> IMD.
+>
+> For example, health researchers may want to use the IMD as a factor to help
+> explain the variation in health outcomes across a sample of areas or
+> individuals.
+> To exclude the effect of the Health Deprivation and Disability Domain, they
+> may want to use a modified measure of deprivation in their statistical
+> analysis, with the Health Deprivation and Disability Domain weight set to
+> zero.
+
+
+[resrep]: https://www.gov.uk/government/publications/english-indices-of-deprivation-2025-research-report
+
+This exclusion can be achieved by doing:
+
+```r
+get_transformed_scores() |>
+  calculate_imd_score(domains = choose_domains(include_health = FALSE))
+```
+
+This is equivalent to (but more straightforward than) doing:
+
+```r
+new_weights <- c(rep(0.225, 2), 0.135, 0, rep(0.093, 3)) # element 4 set to 0
+get_transformed_scores() |>
+  calculate_imd_score(weights = new_weights)
+```
+_(NB the vector must stay length 7 - replace a value by 0; don't _omit_ it)._
+
+
+Further functions may be added in future if they are thought to be helpful.
+
+## Discrepancy between calculated and published scores and ranks
+
+If we do:
+
+```{r}
+calculated_data <- get_transformed_scores() |>
+  calculate_imd_score()
+
+overall_scores <- get_overall_scores()
+common_cols <- c("lsoa21cd", "lsoa21nm", "lad24cd", "lad24nm")
+imd_lookup <- get_imd_lookup() |>
+  dplyr::left_join(overall_scores, common_cols) |>
+  dplyr::arrange(.data[["imd_rank"]])
+```
+
+
+```{r}
+#| echo: false
+mismatch <- sum(imd_lookup[["lsoa21cd"]] != calculated_data[["lsoa21cd"]])
+```
+
+```{r}
+sum(imd_lookup[["lsoa21cd"]] != calculated_data[["lsoa21cd"]])
+```
+
+
+```{r}
+#| echo: false
+dec_mism <- sum(imd_lookup[["imd_decile"]] != calculated_data[["imd_decile"]])
+```
+
+```{r}
+sum(imd_lookup[["imd_decile"]] != calculated_data[["imd_decile"]])
+```
+
+we can see that `r mismatch` LSOAs are in a different row/rank to what is
+expected from the published ranks.
+
+And in `r dec_mism` cases this even causes the LSOA to be allocated to a
+different decile.
+
+### Published instructions for calculating an overall score from transformed domain scores and weights
+
+This approach ought to be the correct one, following the published guidance in
+the IMD Research Report, which makes clear:
+
+> The standardised domain scores have been standardised by ranking and then
+> transformed to an exponential distribution.
+> *These standardised domain scores have been published to be used as the basis
+> for users to combine the domains together using different weights.*</br />
+> *[emphasis added]*<br />
+> [Reconstituting the IMD overall score] can be achieved... using the following
+> equation:
+>
+> Income Deprivation Domain x domain-weight +<br />
+> Employment Deprivation Domain x domain-weight + ... etc.
+
+Simply: each transformed (standardised) domain score is multiplied by its
+appropriate domain weight, then all the results are summed together.
+
+This is the approach implemented in our function `calculate_imd_score()`.
+
+### Explaining the discrepancy - and correcting it?
+
+One thought is to replace the published value for the weightings for domains 5,
+6 and 7 with a slightly amended value: `(0.28 / 3)` instead of `0.093` exactly.
+
+This would make the seven weights add up to 100% exactly, and it seems not an
+unreasonable assumption that for this reason the fractional value might have
+been the one actually used by the creators of the IMD.
+
+However, amending these three weights makes the problem worse instead of better:
+
+```{r}
+# use 0.28/3 instead of 0.093
+new_weights <- c(rep(0.225, 2), rep(0.135, 2), rep(0.28 / 3, 3))
+new_calculated_data <- get_transformed_scores() |>
+  calculate_imd_score(weights = new_weights)
+```
+
+```{r}
+sum(imd_lookup[["lsoa21cd"]] != new_calculated_data[["lsoa21cd"]])
+```
+
+
+The lesson here is that the documentation is actually accurate!
+
+The IMD scores are published to an accuracy of 3 decimal places.
+The values we get from `calculate_imd_score()` are not rounded.
+In the majority of cases, if we round our calculated scores to 3dp, they are
+within 0.001 of the published values.
+
+```{r}
+calc2 <- calculated_data |>
+  dplyr::rename_with(\(x) sub("^imd", "calc_imd", x)) |>
+  # round to 3dp
+  dplyr::mutate(dplyr::across("calc_imd_score", \(x) round(x, 3)))
+
+# Number of LSOAs where rounded calculated score is equal to published score
+imd_lookup |>
+  dplyr::left_join(calc2, common_cols) |>
+  dplyr::filter(imd_score == calc_imd_score) |>
+  nrow()
+```
+
+```{r}
+# Number of LSOAs where rounded calculated score within 0.001 of published score
+imd_lookup |>
+  dplyr::left_join(calc2, common_cols) |>
+  dplyr::filter(abs(imd_score - calc_imd_score) <= 0.001) |>
+  nrow()
+```
+
+This is a great reassurance that our calculation process is fundamentally
+correct!
+There are just some discrepancies.
+And it's hard to tell where these arise.
+
+Might there be an issue with how the published IMD scores have been rounded?
+
+The value of `r mismatch` seems suspiciously not too far off 10% of the total
+number of LSOAs in England.
+
+If the published values have been rounded to 3dp from more precise calculated
+values, we would expect about 10% of those more precise values to have a 4th dp
+value of 5.
+
+In the R `round` function, a 5 is "rounded to even", not simply rounded up.
+That means that
+
+```{r}
+round(0.1235, 3)
+```
+
+produces `0.124` in the way that rounding 5s up would produce.
+However,
+
+```{r}
+round(0.1225, 3)
+```
+
+doesn't return `0.123`, but is instead "rounded to even", returning `0.122`.
+
+If the IMD creators used different software that uses rounding up, could this
+explain our discrepancies?
+
+Unfortunately not; not based on our calculated values, anyway.
+There is no pattern that suggests rounding up instead of rounding to even would
+explain the discrepancies.
+
+What about the ranking of LSOAs with tied scores?
+If we have 2 (or more) LSOAs with the same overall score (when expressed to
+3dp), perhaps residual ordering from an original table of LSOAs might be
+retained in the production of overall ranks.
+Whereas ranking based on our more precise (more than 3dp) calculated values
+might break the apparent ties in a different way.
+
+Again, however, on inspection there seems to be no reason to think that an
+initial ordering of LSOAs can explain the discrepancies.
+
+It might be possible to hack our calculated values so that they more closely
+instantiate the published ranks
+
+Although we believe our calculation function is correctly implementing the
+published method, we may be able to
+
+Through some semi-automated trial and error, we find that a bi-directional
+adjustment value of `0.000167` can be applied programmatically.
+This correction reduces the number of LSOAs with a discrepancy in rank compared
+to their official published ranks.
+
+```{r}
+fix_calculated_data <- function(calculated_data, imd_lookup, adj = 0.000167) {
+  common_cols <- c("lsoa21cd", "lsoa21nm", "lad24cd", "lad24nm")
+  calculated_data |>
+    dplyr::rename_with(\(x) sub("^imd", "calc_imd", x)) |>
+    dplyr::left_join(imd_lookup, common_cols) |>
+    dplyr::mutate(dplyr::across("calc_imd_score", \(x) {
+      dplyr::case_when(
+        # if our calculated rank is too low, that means our score was too high
+        .data[["calc_imd_rank"]] < .data[["imd_rank"]] ~ x - adj,
+        # if our calculated rank is too high, that means our score was too low
+        .data[["calc_imd_rank"]] > .data[["imd_rank"]] ~ x + adj,
+        .default = x
+      )
+    })) |>
+    dplyr::select(!tidyselect::starts_with("imd")) |>
+    dplyr::arrange(dplyr::desc(.data[["calc_imd_score"]])) |>
+    dplyr::mutate(
+      calc_imd_rank = dplyr::row_number(),
+      calc_imd_decile = as.factor(dplyr::ntile(n = 10))
+    ) |>
+    dplyr::rename_with(\(x) sub("^calc_imd", "imd", x))
+}
+
+fixed_calculated_data <- fix_calculated_data(calculated_data, imd_lookup)
+
+```
+
+```{r}
+#| echo: false
+mismatch <- sum(imd_lookup[["lsoa21cd"]] != fixed_calculated_data[["lsoa21cd"]])
+```
+
+```{r}
+sum(imd_lookup[["lsoa21cd"]] != fixed_calculated_data[["lsoa21cd"]])
+```
+
+
+After applying our illicit adjustment hack, we can now see that just
+`r mismatch` LSOAs have a different rank to what is expected.
+
+
+```{r}
+rounded_data <- fixed_calculated_data |>
+  dplyr::rename_with(\(x) sub("^imd", "calc_imd", x)) |>
+  dplyr::mutate(dplyr::across("calc_imd_score", \(x) round(x, 3))) |>
+  dplyr::left_join(imd_lookup, common_cols) |>
+  dplyr::filter(imd_rank != calc_imd_rank) |>
+  dplyr::filter(imd_score != calc_imd_score)
+
+
+# rounded_data |>
+#   dplyr::mutate(dplyr::across(tidyselect::ends_with("imd_score"), as.character)) |>
+#   View()
+```
+
+```{r}
+#| echo: false
+n_diffs_rounded <- nrow(rounded_data)
+```
+
+And of those still with incorrect ranks, there are now `r n_diffs_rounded`
+rows with differences between the calculated scores (when rounded to 3dp) and
+the published scores.
+
+
+### Conclusions
+
+1. Scores calculated by `calculate_imd_score()` are in general close enough
+  (within 0.001) of the published overall score to validate that the
+  calculation process in the function is correctly implemented.
+2. If the aim is to reproduce the published overall LSOA scores and ranks, the
+  functions here do not succeed in completely accurately generating the expected
+  scores.
+  A correcting function, `fix_calculated_data()`, which has no
+  theoretical basis, may be applied to the calculated data.
+  This function is currently only found in the README file, not within the
+  package namespace.
+  This function reduces the error rate in calculated scores from approximately
+  10% to approximately 1%.
+  Most importantly, the correcting function reduces the magnitude of the
+  discrepancies so that in this context the number of LSOAs assigned to the
+  wrong decile was reduced from 15 to zero.
+  However this function relies on the published table of ranks as the basis for
+  comparison in the application of the adjustment quantity, and is therefore
+  only useful when trying to replicate the overall scores and ranks.
+  In which case one might as well just use the original data!
+  If calculating scores using a custom domain selection or custom weights,
+  `fix_calculated_data()` is not applicable, because we have no authoritative
+  pre-calculated table to compare calculated results against.
+  In these cases, the user should just trust that `calculate_imd_score()` will
+  provide "as good as can be expected" results in what is after all a process
+  (production of the IMD) that inevitably contains a number of assumptions and
+  approximations.
+3. It remains unclear why the ~10% discrepancy rate between published and
+  calculated overall scores exists.
+  It seems clear that the default weightings stored in `imd_weights()` are
+  accurate.
+  If IMD overall scores (and/or transformed scores) were available with a
+  precision greater than 3 decimal places, we might be able to investigate in a
+  more detailed way where the discrepancies are being introduced, and how.
+
+
+## Reporting problems
+
+Please use GitHub Issues to report any problems or make suggestions for further
+development.
